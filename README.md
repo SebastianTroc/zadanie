@@ -1,3 +1,14 @@
+## Kilka słów od rekrutowanego ;)
+
+Problem z sortowaniem polegał na tym, że podczas mapowania zagnieżdżonych kategorii używany był tytuł przodka z pierwszego poziomu, aby oznaczyć kolejność.
+Po zmianie na używanie odpowiedniego tytułu, sortowanie działa poprawnie.
+
+Pozwoliłem sobie dodatkowo przerefectorować funkcję categoryTree, aby była w moim odczuciu bardziej czytelna, wykorzystywała rekurencję, aby nie powtarzać kodu.
+
+Mam nadzieję, że nie będzie problemem, że dotknąłem pliku `mockedApi.ts`, zależało mi, aby współdzielone typy znalazły się w miejscu, z którego importowanie nie wprowadza dezorientacji.  
+
+Na koniec, aby spełnić wszystkie założenia dotyczące logiki oznaczania kategorii wyświetlanych na stronie głównej, musimy ponownie wykonać operację na całym zbiorze, bo dopiero wtedy jest ustalona odpowiednia kolejność kategorii.
+Podczas pierwszej iteracji jedynie oznaczam kategorie, które potencjalnie mogą być widoczne na stronie głównej, na podstawie znanych informacji. Aby w kolejnej pętli (jeśli się wydarzy) było mniej operacji do wykonania.
 
 ## A co my tu mamy?
 
