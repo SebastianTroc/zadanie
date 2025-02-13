@@ -1,11 +1,18 @@
+import { MAIN_NESTING_LEVEL } from './consts';
 import { Category, CategoryListElement, DataSourceResponse } from './types';
-import { determineOrder, determineShowOnHome, sortingStrategy } from './utils';
+import {
+  determineOrder,
+  determineShowOnHome,
+  hasShowOnHomeIndicator,
+  sortingStrategy,
+} from './utils';
 
 const prepareCategories = (
   categories: Category[],
-  nestingLevel = 1
-): CategoryListElement[] =>
-  categories
+  nestingLevel = MAIN_NESTING_LEVEL
+): CategoryListElement[] => {
+  const isMainNestingLevel = nestingLevel === MAIN_NESTING_LEVEL;
+  return categories
     .map((category) => {
       return {
         id: category.id,
@@ -17,10 +24,12 @@ const prepareCategories = (
               sortingStrategy
             )
           : [],
-        showOnHome: determineShowOnHome(category.Title, nestingLevel),
+        showOnHome:
+          isMainNestingLevel && hasShowOnHomeIndicator(category.Title), // set default value, will be processed again later
       };
     })
     .sort(sortingStrategy);
+};
 
 export const categoryTree = async (
   fetchCategories: () => Promise<DataSourceResponse<Category>>
@@ -31,5 +40,10 @@ export const categoryTree = async (
     return [];
   }
 
-  return prepareCategories(res.data);
+  let categoryListElements = prepareCategories(res.data);
+
+  // process showOnHome again for sorted set
+  categoryListElements = determineShowOnHome(categoryListElements);
+
+  return categoryListElements;
 };

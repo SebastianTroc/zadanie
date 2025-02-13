@@ -1,7 +1,13 @@
 import test from 'ava';
 
 import { SHOW_ON_HOME_INDICATOR } from './consts';
-import { determineOrder, determineShowOnHome, sortingStrategy } from './utils';
+import { CategoryListElement } from './types';
+import {
+  determineOrder,
+  determineShowOnHome,
+  hasShowOnHomeIndicator,
+  sortingStrategy,
+} from './utils';
 
 test('determineOrder() should return correct number based on given input', (t) => {
   // Title is a name
@@ -17,19 +23,15 @@ test('determineOrder() should return correct number based on given input', (t) =
   t.is(determineOrder({ id: 4, Title: `5 !` }), 5);
 });
 
-test(`determineShowOnHome() should return correct boolean based on nesting level and "${SHOW_ON_HOME_INDICATOR}" indicator `, (t) => {
+test(`hasShowOnHomeIndicator() should return correct boolean based on presence of "${SHOW_ON_HOME_INDICATOR}" indicator in title`, (t) => {
   // happy path
-  t.is(determineShowOnHome('1#', 1), true);
+  t.is(hasShowOnHomeIndicator('1#'), true);
 
-  // happy path with Title containing name of the product instead of ordering number
-  t.is(determineShowOnHome('Some product #', 1), true);
+  // happy path with title containing name of the product instead of ordering number
+  t.is(hasShowOnHomeIndicator('Some product #'), true);
 
   // item without SHOW_ON_HOME_INDICATOR
-  t.is(determineShowOnHome('Some product', 1), false);
-
-  // nestingLevel higher than SHOW_ON_HOME_MAX_NESTING_LEVEL
-  t.is(determineShowOnHome('Some product', 2), false);
-  t.is(determineShowOnHome('Another product', 3), false);
+  t.is(hasShowOnHomeIndicator('Some product'), false);
 });
 
 test('sortingStrategy() should sort ascending', (t) => {
@@ -37,4 +39,36 @@ test('sortingStrategy() should sort ascending', (t) => {
   const expectedResult = [{ order: 1 }, { order: 2 }, { order: 3 }];
 
   t.deepEqual(categoriesToSort.sort(sortingStrategy), expectedResult);
+});
+
+const sampleCategory: CategoryListElement = {
+  id: 1,
+  name: 'Some product',
+  image: 'Some image',
+  order: 1,
+  children: [],
+  showOnHome: false,
+};
+
+test('determineShowOnHome() should set `showOnHome` to `true` for all categories when there are less or equal to maximum shown categories configured by `smallSetThreshold`', (t) => {
+  const testingThreshold = 3;
+  const smallCategoriesSet = new Array(testingThreshold).fill(sampleCategory);
+  const bigCategoriesSet = new Array(testingThreshold + 1).fill(sampleCategory);
+
+  const smallCategoriesSetResult = determineShowOnHome(
+    smallCategoriesSet,
+    testingThreshold
+  );
+  t.true(
+    smallCategoriesSetResult.every((category) => category.showOnHome === true)
+  );
+
+  const bigCategoriesSetResult = determineShowOnHome(
+    bigCategoriesSet,
+    testingThreshold
+  );
+  t.is(bigCategoriesSetResult[0].showOnHome, true);
+  t.is(bigCategoriesSetResult[1].showOnHome, true);
+  t.is(bigCategoriesSetResult[2].showOnHome, true);
+  t.is(bigCategoriesSetResult[3].showOnHome, false);
 });
